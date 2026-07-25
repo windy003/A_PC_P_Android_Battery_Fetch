@@ -1,0 +1,1 @@
+start /b  "" pythonw   "D:\files\using\Web\A_PC_P_Android_Battery_Fetch\Server\app.py"

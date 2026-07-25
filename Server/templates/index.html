@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>局域网电量监控</title>
+<link rel="apple-touch-icon" sizes="2048x2048" href="{{ url_for('static', filename='2048x2048.png') }}">
+
+<style>
+  :root { color-scheme: light dark; }
+  body { font-family: system-ui, "Microsoft YaHei", sans-serif;
+         max-width: 720px; margin: 24px auto; padding: 0 16px; }
+  h1 { font-size: 20px; }
+  .bar { display:flex; align-items:center; gap:12px; margin-bottom:12px; }
+  button { padding:8px 16px; font-size:14px; cursor:pointer; border-radius:8px;
+           border:1px solid #8888; background:transparent; color:inherit; }
+  .card { border:1px solid #8883; border-radius:12px; padding:14px 16px;
+          margin-bottom:10px; display:flex; align-items:center; gap:14px; }
+  .name { font-weight:600; flex:1; }
+  .pct { font-size:22px; font-variant-numeric:tabular-nums; min-width:56px; text-align:right; }
+  .meter { flex:2; height:10px; border-radius:6px; background:#8883; overflow:hidden; }
+  .fill { height:100%; border-radius:6px; }
+  .offline { opacity:.45; }
+  .tag { font-size:12px; padding:2px 8px; border-radius:20px; background:#8882; }
+  .muted { color:#8889; font-size:13px; }
+</style>
+</head>
+<body>
+  <h1>🔋 局域网电量监控</h1>
+  <div class="bar">
+    <button onclick="refresh()">立即刷新</button>
+    <span class="muted" id="ts"></span>
+  </div>
+  <div id="list"></div>
+  <p class="muted" id="empty" style="display:none">还没有设备注册。请在手机 App 里填入本机 IP 并启动服务。</p>
+
+<script>
+function color(pct, charging){
+  if (charging) return "#3b82f6";
+  if (pct <= 15) return "#ef4444";
+  if (pct <= 35) return "#f59e0b";
+  return "#22c55e";
+}
+async function refresh(){
+  const list = document.getElementById("list");
+  try {
+    const r = await fetch("/devices");
+    const data = await r.json();
+    document.getElementById("empty").style.display = data.length ? "none" : "block";
+    list.innerHTML = data.map(d => {
+      const pct = d.battery ?? 0;
+      if (!d.online) return `<div class="card offline">
+          <span class="name">${d.name}</span>
+          <span class="tag">离线</span>
+          <span class="muted">${d.ip}</span></div>`;
+      return `<div class="card">
+          <span class="name">${d.name} ${d.charging ? "⚡" : ""}</span>
+          <div class="meter"><div class="fill"
+               style="width:${pct}%;background:${color(pct, d.charging)}"></div></div>
+          <span class="pct">${pct}%</span></div>`;
+    }).join("");
+    document.getElementById("ts").textContent =
+      "更新于 " + new Date().toLocaleTimeString();
+  } catch(e){
+    list.innerHTML = `<p class="muted">获取失败:${e}</p>`;
+  }
+}
+refresh();
+</script>
+</body>
+</html>
