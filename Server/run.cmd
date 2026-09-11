@@ -1,1 +1,1 @@
-start /b  "" pythonw   "D:\files\using\Web\A_PC_P_Android_Battery_Fetch\Server\app.py"
+start /b  "" "D:\files\using\Web\A_PC_P_Android_Battery_Fetch\Server\.venv\Scripts\pythonw.exe"  "D:\files\using\Web\A_PC_P_Android_Battery_Fetch\Server\app.py"

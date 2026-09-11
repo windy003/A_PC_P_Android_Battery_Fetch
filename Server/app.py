@@ -70,8 +70,11 @@ def _query_one(device_id, info):
         "charging": None,
     }
     try:
-        # 局域网请求要绕开系统代理(VPN/代理软件可能劫持所有 HTTP 请求,导致连不上局域网设备)
-        r = requests.get(url, timeout=QUERY_TIMEOUT, proxies={"http": None, "https": None})
+        # 局域网请求要绕开系统代理(有些代理工具把 HTTP_PROXY 等环境变量永久写进了系统变量,
+        # 光传 proxies={...: None} 挡不住,必须连 trust_env 一起关掉,requests 才会彻底忽略代理)
+        session = requests.Session()
+        session.trust_env = False
+        r = session.get(url, timeout=QUERY_TIMEOUT, proxies={"http": None, "https": None})
         r.raise_for_status()
         payload = r.json()
         result["online"] = True
